@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,9 +9,8 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
+import { _users } from 'src/_mock'; // Mock data
 import { DashboardContent } from 'src/layouts/dashboard';
-
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -22,22 +21,55 @@ import { TableEmptyRows } from '../table-empty-rows';
 import { UserTableToolbar } from '../user-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
+import Adduser from './addUserPopUp';
+import { NewUserTableRow } from '../new-user-table-row';
+
 import type { UserProps } from '../user-table-row';
 
 // ----------------------------------------------------------------------
 
 export function UserView() {
-  const table = useTable();
+  const table = useTable(); // Custom hook for table state management
 
   const [filterName, setFilterName] = useState('');
+  const [addUser, setAdduser] = useState(false);
+  const [users, setUsers] = useState<{ name: string; company: string; role: string }[]>([]);
 
-  const dataFiltered: UserProps[] = applyFilter({
-    inputData: _users,
-    comparator: getComparator(table.order, table.orderBy),
-    filterName,
-  });
+  // Function to filter users based on search query
+  const getFilteredUsers = () => {
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.company.toLowerCase().includes(filterName.toLowerCase()) ||
+        user.role.toLowerCase().includes(filterName.toLowerCase())
+    );
+  };
 
-  const notFound = !dataFiltered.length && !!filterName;
+  const openAdduser = () => {
+    setAdduser(true);
+  };
+
+  const onClose = () => {
+    setAdduser(false);
+  };
+
+  useEffect(() => {
+    if (addUser) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [addUser]);
+
+  const handleAddUser = (user: { name: string; company: string; role: string }) => {
+    setUsers((prevUsers) => [...prevUsers, user]);
+  };
+
+  const filteredUsers = getFilteredUsers(); // Get filtered users based on search input
+  const notFound = !filteredUsers.length && !!filterName;
 
   return (
     <DashboardContent>
@@ -49,18 +81,38 @@ export function UserView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={openAdduser}
         >
           New user
         </Button>
       </Box>
 
+      {/* Add User Popup */}
+      {addUser && (
+        <Box
+          width="100%"
+          height="100%"
+          zIndex="70"
+          overflow="hidden"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          position="fixed"
+          top="0"
+          left="0"
+        >
+          <Adduser onAddUser={handleAddUser} onClose={onClose} />
+        </Box>
+      )}
+
       <Card>
+        {/* User Table Toolbar with Search Field */}
         <UserTableToolbar
-          numSelected={table.selected.length}
+          numSelected={0} // Assuming table.selected is an empty array for now
           filterName={filterName}
           onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
             setFilterName(event.target.value);
-            table.onResetPage();
+            table.onResetPage(); // Reset the page after filtering
           }}
         />
 
@@ -70,13 +122,13 @@ export function UserView() {
               <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={users.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    _users.map((user) => user.id)
+                    _users.map((user) => user.id) // Assuming user id is unique for selection
                   )
                 }
                 headLabel={[
@@ -89,7 +141,36 @@ export function UserView() {
                 ]}
               />
               <TableBody>
-                {dataFiltered
+                {/* Render filtered users */}
+                {filteredUsers
+                  .slice(
+                    table.page * table.rowsPerPage,
+                    table.page * table.rowsPerPage + table.rowsPerPage
+                  )
+                  .map((user, index) => (
+                    <NewUserTableRow
+                      key={index}
+                      name={user?.name}
+                      company={user?.company}
+                      role={user?.role}
+                      row={{
+                        id: '',
+                        name: '',
+                        role: '',
+                        status: '',
+                        company: '',
+                        avatarUrl: '',
+                        isVerified: true,
+                      }}
+                      index={index}
+                      user={users}
+                      setUsers={setUsers}
+                      selected={false}
+                      onSelectRow={() => {}}
+                    />
+                  ))}
+                {/* Render static data from _users */}
+                {_users
                   .slice(
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
@@ -103,21 +184,24 @@ export function UserView() {
                     />
                   ))}
 
+                {/* Empty rows handling */}
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, users.length)}
                 />
 
+                {/* No data found handling */}
                 {notFound && <TableNoData searchQuery={filterName} />}
               </TableBody>
             </Table>
           </TableContainer>
         </Scrollbar>
 
+        {/* Pagination */}
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={users.length}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
@@ -130,6 +214,7 @@ export function UserView() {
 
 // ----------------------------------------------------------------------
 
+// useTable custom hook for table state management
 export function useTable() {
   const [page, setPage] = useState(0);
   const [orderBy, setOrderBy] = useState('name');

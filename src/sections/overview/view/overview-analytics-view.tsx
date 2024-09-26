@@ -13,28 +13,44 @@ import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 import { AnalyticsTrafficBySite } from '../analytics-traffic-by-site';
 import { AnalyticsCurrentSubject } from '../analytics-current-subject';
 import { AnalyticsConversionRates } from '../analytics-conversion-rates';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
+
+
 export function OverviewAnalyticsView() {
+    const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      setTimeout(() => setLoading(false), 2000); 
+    }, []);
+  
+  
+  
   return (
     <DashboardContent maxWidth="xl">
       <Typography variant="h4" sx={{ mb: { xs: 3, md: 5 } }}>
-        Hi, Welcome back 👋
+      {loading ? <Skeleton width="20%" /> : 'Hi, Welcome back 👋'}
       </Typography>
 
       <Grid container spacing={3}>
         <Grid xs={12} sm={6} md={3}>
-          <AnalyticsWidgetSummary
-            title="Weekly sales"
-            percent={2.6}
-            total={714000}
-            icon={<img alt="icon" src="/assets/icons/glass/ic-glass-bag.svg" />}
-            chart={{
-              categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-              series: [22, 8, 35, 50, 82, 84, 77, 12],
-            }}
-          />
+          {loading ? (
+            <Skeleton variant="rectangular" width="100%" height={150} />
+          ) : (
+            <AnalyticsWidgetSummary
+              title="Weekly sales"
+              percent={2.6}
+              total={714000}
+              icon={<img alt="icon" src="/assets/icons/glass/ic-glass-bag.svg" />}
+              chart={{
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                series: [22, 8, 35, 50, 82, 84, 77, 12],
+              }}
+            />
+          )}
         </Grid>
 
         <Grid xs={12} sm={6} md={3}>

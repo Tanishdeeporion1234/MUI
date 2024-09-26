@@ -50,6 +50,18 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
     [handleClosePopover, router]
   );
 
+  const email = localStorage.getItem('email')
+  const userName = localStorage.getItem('username')
+  const savedAvatarUrl = localStorage.getItem('avatarUrl');
+  const handleLogout =()=>{
+    localStorage.removeItem('email')
+    localStorage.removeItem('password')
+    localStorage.removeItem('username')
+    localStorage.removeItem('avatarUrl')
+
+  }
+
+
   return (
     <>
       <IconButton
@@ -64,8 +76,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         }}
         {...other}
       >
-        <Avatar src={_myAccount.photoURL} alt={_myAccount.displayName} sx={{ width: 1, height: 1 }}>
-          {_myAccount.displayName.charAt(0).toUpperCase()}
+        <Avatar src={savedAvatarUrl} alt={userName} sx={{ width: 1, height: 1 }}>
+          {userName}
         </Avatar>
       </IconButton>
 
@@ -83,11 +95,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {_myAccount?.displayName}
+            {userName}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {_myAccount?.email}
+            {email||'Please Login First'}
           </Typography>
         </Box>
 
@@ -129,7 +141,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box sx={{ p: 1 }}>
-          <Button fullWidth color="error" size="medium" variant="text">
+          <Button fullWidth color="error" onClick={handleLogout} size="medium" variant="text">
             Logout
           </Button>
         </Box>
