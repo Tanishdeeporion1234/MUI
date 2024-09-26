@@ -164,7 +164,6 @@ const Profile = () => {
     const handlePasswordChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
         setModalpassword(event.target.value); 
       };
-    
 
     const handleOpenEdit =()=>{
         if (modalPassword === password) {
