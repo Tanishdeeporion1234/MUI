@@ -158,7 +158,6 @@ const Profile = () => {
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
-        console.log("Profile data submitted:", profileData);
         setIsEditModalOpen(false);
     };
 
